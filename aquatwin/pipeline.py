@@ -35,6 +35,34 @@ def split_episodes(episodes: list[str], test_fraction: float) -> tuple[list[str]
     return eps[:-n_test], eps[-n_test:]
 
 
+def calibration_frame(cfg: AquaTwinConfig, net, sensors, ctx, per_level: int = 2, seed: int = 777) -> pd.DataFrame:
+    """Fresh commissioning episodes (never used for training or evaluation) for alarm calibration."""
+    from aquatwin.data.generator import RowBuilder, run_episode
+    from aquatwin.scenarios.engine import compose_episode
+    rng = np.random.default_rng(seed)
+    rows = RowBuilder(net, sensors)
+    frames = []
+    for level in range(6):
+        for k in range(per_level):
+            names = compose_episode(level, rng, leak_prob=0.6)
+            start = pd.Timestamp(cfg.simulation.start) + pd.Timedelta(days=int(rng.integers(30, 330)))
+            r = run_episode(net, sensors, cfg, level, names, int(rng.integers(1e9)), f"C{level}{k:02d}", start, rows=rows)
+            frames.append(detection_features(r.pipes, r.nodes, ctx))
+    return pd.concat(frames, ignore_index=True)
+
+
+def calibrate_detector(cfg: AquaTwinConfig, det: LeakDetector | None = None, verbose: bool = True) -> dict:
+    md = Path(cfg.training.model_dir)
+    net, sensors, ctx = load_world(cfg.dataset.output_dir)
+    det = det or LeakDetector.load(md / "detection")
+    rep = det.calibrate_alarm(calibration_frame(cfg, net, sensors, ctx))
+    det.save(md / "detection")
+    if verbose:
+        print(f"      alarm calibration: threshold {det.alarm_threshold:.3f} "
+              f"(FAR {rep['chosen']['far']:.3f}, F1 {rep['chosen']['f1']:.3f} on calibration episodes)")
+    return rep
+
+
 def train_all(cfg: AquaTwinConfig, verbose: bool = True) -> dict:
     t0 = time.time()
     d = Path(cfg.dataset.output_dir)
@@ -60,10 +88,12 @@ def train_all(cfg: AquaTwinConfig, verbose: bool = True) -> dict:
     test_df = F[F.episode_id.isin(test_eps)]
     det = LeakDetector()
     fit_rep = det.fit(train_df, cfg.training.detection_max_neg_ratio, cfg.training.seed)
+    calib = det.calibrate_alarm(calibration_frame(cfg, net, sensors, ctx))
+    log(f"      alarm calibration: threshold {det.alarm_threshold:.3f} (FAR {calib['chosen']['far']:.3f})")
     det_test = det.evaluate(test_df)
     det.save(md / "detection")
     report["detection"] = dict(validation_oof=fit_rep["validation"], validation_event=fit_rep["validation_event"],
-                               test=det_test, selected_features=det.features,
+                               test=det_test, selected_features=det.features, alarm_calibration=calib,
                                feature_selection=fit_rep["selection"], class_balance=fit_rep["class_balance"],
                                train_episodes=train_eps, test_episodes=test_eps)
     registry.register("leak_detector", det_test, d / "manifest.json", dict(features=det.features))
@@ -158,6 +188,10 @@ def render_training_report(r: dict) -> str:
              f"{_fmt(ev['event_recall'])} | {_fmt(ev['event_f1'])} | {_fmt(ev.get('event_roc_auc'))} |",
              f"| Pipe x time step | {_fmt(row['accuracy'])} | {_fmt(row['precision'])} | {_fmt(row['recall'])} | "
              f"{_fmt(row['f1'])} | {_fmt(row.get('roc_auc'))} |", "",
+             (f"Alarm calibrated on {r['detection']['alarm_calibration'].get('episodes', '?')} unseen commissioning episodes: "
+              f"per-pipe normal baselines + threshold {_fmt(r['detection']['alarm_calibration']['chosen']['threshold'])} "
+              f"chosen under a {r['detection']['alarm_calibration']['max_false_alarm_rate']:.0%} false-alarm budget."
+              if r["detection"].get("alarm_calibration") else ""), "",
              f"Mean detection delay: {_fmt(ev['mean_detection_delay_steps'], 2)} steps (15 min each); "
              f"leak episodes missed: {ev['leak_episodes_missed']}/{ev['leak_episodes']}.", "",
              "Pipe ranking during leaks: " + ", ".join(f"{k} = {_fmt(v)}" for k, v in det["pipe_hit_at_k"].items()), "",

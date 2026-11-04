@@ -271,13 +271,13 @@ with tabs[1]:
             st.plotly_chart(style(fig, f"Pressure at {node}", 260, "m"), use_container_width=True, theme=None)
             sysdf = pd.DataFrame([dict(t=r.cond.timestamp, loss=r.truth.total_loss_ls) for r in twin.records])
             pm = pd.DataFrame(dict(t=[r.cond.timestamp for r in twin.records[-len(twin.probabilities):]],
-                                   p=[p.max() for p in twin.probabilities]))
+                                   p=twin.alarm_scores))
             fig = go.Figure()
-            fig.add_scatter(x=pm.t, y=pm.p, name="max leak probability", line=dict(color=SERIES[0], width=2))
+            fig.add_scatter(x=pm.t, y=pm.p, name="alarm score", line=dict(color=SERIES[0], width=2))
             if twin.detector is not None:
                 fig.add_hline(y=twin.detector.alarm_threshold, line=dict(color=MUTED, dash="dash", width=1),
                               annotation_text="alarm threshold")
-            st.plotly_chart(style(fig, "AI leak probability (network max)", 220), use_container_width=True, theme=None)
+            st.plotly_chart(style(fig, "AI alarm score (excess leak probability, network max)", 220), use_container_width=True, theme=None)
             if show_truth:
                 fig = go.Figure(go.Scatter(x=sysdf.t, y=sysdf.loss, name="true loss", line=dict(color=SERIES[0], width=2),
                                            fill="tozeroy", fillcolor="rgba(42,120,214,0.12)"))

@@ -22,7 +22,12 @@
 | 4 | Compound events | Leak + high demand, leak + sensor failure, dual leaks, burst + shutdown, leak + corrosion + surge |
 | 5 | Realistic urban operations | All of the above + rain, settlement, construction, traffic, weekends |
 
-The failure model is evaluated at each level on an asset register with degraded data quality:
+Localisation is additionally scored on a **controlled benchmark** per level: about 60 fresh single-leak
+physics runs (≈180 onset snapshots), because full-day episodes contain too few leak onsets for stable
+statistics.
+
+The failure model is evaluated at each level on the asset register of an **unseen city** (a
+different generator seed), so no pipe overlaps with training, with degraded data quality:
 inspection noise rises from 0.06 to 0.15, and at L3 and above 5-15% of repair records are partially lost.
 
 ## 3. Metrics
@@ -34,6 +39,7 @@ inspection noise rises from 0.06 to 0.15, and at L3 and above 5-15% of repair re
 | | Detection delay | Minutes from leak onset to first alarm |
 | Detection (pipe level) | ROC-AUC, PR-AUC, F1, hit@k | Per pipe × step. hit@k = a true leaking pipe is among the top-k ranked pipes |
 | | Recall by leak size | Small (< 7 mm), medium, large, burst |
+| Detection (detectable) | F1 for leaks ≥ 1 L/s, leak episodes detected | Steps whose only leaks are below the physical sensing floor are excluded; episode-level hit rate |
 | Localisation | Localisation error (m) | **Network (along-pipe) distance** between the predicted point (pipe + position) and the nearest true leak |
 | | Top-1/3/5, ≤ 100 m, ≤ 250 m | Pipe-level accuracy and operational tolerance (an acoustic crew can sweep about 250 m) |
 | | Baseline | Classical sensitivity-matrix correlation on the same snapshots |

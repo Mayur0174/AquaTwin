@@ -52,6 +52,8 @@ class LeakDetector:
     alarm_persistence: int = 2
     model: xgb.XGBClassifier | None = None
     selection_report: dict = field(default_factory=dict)
+    pipe_baseline: dict = field(default_factory=dict)   # per-pipe normal (no-leak) probability
+    calibration_report: dict = field(default_factory=dict)
 
     # ------------------------------------------------------------------ training
     def fit(self, df: pd.DataFrame, max_neg_ratio: float = 25.0, seed: int = 0, select: bool = True,
@@ -118,10 +120,47 @@ class LeakDetector:
     def predict_proba(self, df: pd.DataFrame) -> np.ndarray:
         return self.model.predict_proba(df[self.features])[:, 1]
 
+    def alarm_score(self, df: pd.DataFrame, p: np.ndarray | None = None) -> np.ndarray:
+        """Excess leak probability over the pipe's learned normal behaviour: (p - b) / (1 - b)."""
+        p = self.predict_proba(df) if p is None else p
+        if not self.pipe_baseline:
+            return p
+        b = df.pipe_id.map(self.pipe_baseline).fillna(0.0).to_numpy()
+        return np.clip((p - b) / np.maximum(1 - b, 1e-3), 0, 1)
+
+    def calibrate_alarm(self, df: pd.DataFrame, max_false_alarm_rate: float = 0.05,
+                        baseline_quantile: float = 0.9) -> dict:
+        """Commissioning-style calibration on held-out calibration episodes.
+
+        1. Learn each pipe's normal probability (quantile over leak-free time steps).
+        2. Choose the alarm threshold maximising network-level F1 subject to a
+           false-alarm budget (Neyman-Pearson), the way utilities set SCADA alarms.
+        """
+        p = self.predict_proba(df)
+        leak_step = df.groupby(["episode_id", "step"]).is_leak.transform("max").to_numpy() == 1
+        normal = df.assign(p=p)[~leak_step]
+        self.pipe_baseline = normal.groupby("pipe_id").p.quantile(baseline_quantile).round(5).to_dict()
+        score = self.alarm_score(df, p)
+        d = df.assign(leak_probability=p, alarm_score=score)
+        best, rows = None, []
+        for thr in np.linspace(0.05, 0.95, 37):
+            m = network_event_metrics(d, float(thr), self.alarm_persistence)
+            n_neg = int((~d.groupby(["episode_id", "step"]).is_leak.max().astype(bool)).sum())
+            far = m["false_alarm_steps"] / max(1, n_neg)
+            rows.append(dict(threshold=float(thr), far=far, f1=m["event_f1"], recall=m["event_recall"]))
+        table = pd.DataFrame(rows)
+        ok = table[table.far <= max_false_alarm_rate]
+        pick = ok.loc[ok.f1.idxmax()] if len(ok) else table.loc[table.far.idxmin()]
+        self.alarm_threshold = float(pick.threshold)
+        self.calibration_report = dict(max_false_alarm_rate=max_false_alarm_rate, chosen=pick.to_dict(),
+                                       n_rows=len(df), episodes=int(df.episode_id.nunique()))
+        return self.calibration_report
+
     def evaluate(self, df: pd.DataFrame) -> dict:
         p = self.predict_proba(df)
         out = dict(row=classification_metrics(df.is_leak.to_numpy(), p, self.threshold))
-        out["event"] = network_event_metrics(df.assign(leak_probability=p), self.alarm_threshold, self.alarm_persistence)
+        out["event"] = network_event_metrics(df.assign(leak_probability=p, alarm_score=self.alarm_score(df, p)),
+                                             self.alarm_threshold, self.alarm_persistence)
         # pipe ranking quality during leak steps: is a true leaking pipe among the top-k scored pipes?
         d = df.assign(leak_probability=p)
         hits = {1: [], 5: [], 10: []}
@@ -147,7 +186,8 @@ class LeakDetector:
         d.mkdir(parents=True, exist_ok=True)
         self.model.save_model(d / "detector.json")
         meta = dict(features=self.features, threshold=self.threshold, alarm_threshold=self.alarm_threshold,
-                    alarm_persistence=self.alarm_persistence, selection=self.selection_report)
+                    alarm_persistence=self.alarm_persistence, selection=self.selection_report,
+                    pipe_baseline=self.pipe_baseline, calibration=self.calibration_report)
         (d / "detector_meta.json").write_text(json.dumps(meta, indent=2))
 
     @classmethod
@@ -157,13 +197,15 @@ class LeakDetector:
         m = xgb.XGBClassifier()
         m.load_model(d / "detector.json")
         return cls(features=meta["features"], threshold=meta["threshold"], alarm_threshold=meta["alarm_threshold"],
-                   alarm_persistence=meta["alarm_persistence"], model=m, selection_report=meta.get("selection", {}))
+                   alarm_persistence=meta["alarm_persistence"], model=m, selection_report=meta.get("selection", {}),
+                   pipe_baseline=meta.get("pipe_baseline", {}), calibration_report=meta.get("calibration", {}))
 
 
 def network_alarms(df: pd.DataFrame, thr: float, persistence: int, group: str = "episode_id") -> pd.DataFrame:
     """Network-level alarm per time step: max pipe probability above thr for `persistence` steps."""
-    g = df.groupby([group, "step"]).agg(pmax=("leak_probability", "max"), truth=("is_leak", "max"),
-                                        top_pipe=("leak_probability", lambda s: df.loc[s.idxmax(), "pipe_id"]))
+    col = "alarm_score" if "alarm_score" in df else "leak_probability"
+    g = df.groupby([group, "step"]).agg(pmax=(col, "max"), truth=("is_leak", "max"),
+                                        top_pipe=(col, lambda s: df.loc[s.idxmax(), "pipe_id"]))
     g = g.reset_index().sort_values([group, "step"])
     above = (g.pmax >= thr).astype(int)
     g["alarm"] = above.groupby(g[group]).transform(lambda s: s.rolling(persistence, min_periods=persistence).min()).fillna(0).astype(int)

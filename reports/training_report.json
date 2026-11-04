@@ -1,0 +1,384 @@
+{
+  "detection": {
+    "validation_oof": {
+      "accuracy": 0.9969782378590356,
+      "precision": 0.3321074964639321,
+      "recall": 0.3182434264028192,
+      "f1": 0.32502768549280175,
+      "threshold": 0.9073862433433533,
+      "positives": 3689,
+      "n": 1613628,
+      "false_positives": 2361,
+      "false_negatives": 2515,
+      "roc_auc": 0.9375909690650193,
+      "pr_auc": 0.2663154322365496
+    },
+    "validation_event": {
+      "event_roc_auc": 0.9024519226638845,
+      "event_precision": 0.6677130044843049,
+      "event_recall": 0.8256168561131134,
+      "event_f1": 0.7383165984876657,
+      "event_accuracy": 0.737045341305431,
+      "false_alarm_steps": 1482,
+      "missed_steps": 629,
+      "mean_detection_delay_steps": 0.48306997742663654,
+      "leak_episodes_missed": 28,
+      "leak_episodes": 914
+    },
+    "test": {
+      "row": {
+        "accuracy": 0.9967523493642897,
+        "precision": 0.41304347826086957,
+        "recall": 0.28273809523809523,
+        "f1": 0.33568904593639576,
+        "threshold": 0.9073862433433533,
+        "positives": 336,
+        "n": 115776,
+        "false_positives": 135,
+        "false_negatives": 241,
+        "roc_auc": 0.9675254151816651,
+        "pr_auc": 0.3093051469212697
+      },
+      "event": {
+        "event_roc_auc": 0.9047991071428572,
+        "event_precision": 0.9238095238095239,
+        "event_recall": 0.5773809523809523,
+        "event_f1": 0.7106227106227107,
+        "event_accuracy": 0.7256944444444444,
+        "false_alarm_steps": 16,
+        "missed_steps": 142,
+        "mean_detection_delay_steps": 2.4,
+        "leak_episodes_missed": 0,
+        "leak_episodes": 5
+      },
+      "pipe_hit_at_k": {
+        "hit@1": 0.3898809523809524,
+        "hit@5": 0.6696428571428571,
+        "hit@10": 0.7827380952380952
+      },
+      "recall_by_size": {
+        "medium(7-16)": 0.0,
+        "large(16-35)": 0.38235294117647056,
+        "burst(>35)": 0.4918032786885246
+      }
+    },
+    "selected_features": [
+      "contrast_rank",
+      "nbr_min_rank",
+      "nbr_contrast",
+      "flow_res",
+      "pipe_health",
+      "nbr_res",
+      "flow_res_rank",
+      "corrosion",
+      "sensor_health",
+      "dma_ufw",
+      "dma_ufw_roll4",
+      "res_end",
+      "gap_to_min",
+      "flow_res_rel",
+      "nbr_roll4",
+      "pipe_age",
+      "nbr_delta",
+      "length_m",
+      "res_local",
+      "demand",
+      "nbr_min",
+      "pressure",
+      "net_median_res",
+      "net_min_contrast",
+      "dma_ufw_rel",
+      "flow",
+      "hour_sin",
+      "nbr_count",
+      "hour_cos"
+    ],
+    "feature_selection": {
+      "ranked_gain": {
+        "contrast_rank": 0.246,
+        "nbr_min_rank": 0.0711,
+        "nbr_contrast": 0.0596,
+        "flow_res": 0.0559,
+        "pipe_health": 0.0429,
+        "nbr_res": 0.0408,
+        "flow_res_rank": 0.0378,
+        "corrosion": 0.0306,
+        "sensor_health": 0.0305,
+        "dma_ufw": 0.0305,
+        "dma_ufw_roll4": 0.0281,
+        "res_end": 0.0265,
+        "gap_to_min": 0.0261,
+        "flow_res_rel": 0.0254,
+        "nbr_roll4": 0.025,
+        "pipe_age": 0.0241,
+        "nbr_delta": 0.0235,
+        "length_m": 0.0217,
+        "res_local": 0.02,
+        "demand": 0.0174,
+        "nbr_min": 0.0144,
+        "pressure": 0.0142,
+        "net_median_res": 0.0139,
+        "net_min_contrast": 0.0113,
+        "dma_ufw_rel": 0.0107,
+        "flow": 0.0087,
+        "hour_sin": 0.0082,
+        "nbr_count": 0.008,
+        "hour_cos": 0.0077,
+        "res_start": 0.0076,
+        "diameter_mm": 0.0055,
+        "material_code": 0.003,
+        "repair_count": 0.0028,
+        "is_night": 0.0006
+      },
+      "kept": [
+        "contrast_rank",
+        "nbr_min_rank",
+        "nbr_contrast",
+        "flow_res",
+        "pipe_health",
+        "nbr_res",
+        "flow_res_rank",
+        "corrosion",
+        "sensor_health",
+        "dma_ufw",
+        "dma_ufw_roll4",
+        "res_end",
+        "gap_to_min",
+        "flow_res_rel",
+        "nbr_roll4",
+        "pipe_age",
+        "nbr_delta",
+        "length_m",
+        "res_local",
+        "demand",
+        "nbr_min",
+        "pressure",
+        "net_median_res",
+        "net_min_contrast",
+        "dma_ufw_rel",
+        "flow",
+        "hour_sin",
+        "nbr_count",
+        "hour_cos"
+      ],
+      "dropped": [
+        "res_start",
+        "is_night",
+        "diameter_mm",
+        "repair_count",
+        "material_code"
+      ]
+    },
+    "class_balance": {
+      "pos": 3689,
+      "neg": 92225
+    },
+    "train_episodes": [
+      "E000",
+      "E001",
+      "E002",
+      "E003",
+      "E004",
+      "E005",
+      "E006",
+      "E007",
+      "E008",
+      "E009",
+      "E010",
+      "E011",
+      "E012",
+      "E013",
+      "E014",
+      "E015",
+      "E016",
+      "E017"
+    ],
+    "test_episodes": [
+      "E018",
+      "E019",
+      "E020",
+      "E021",
+      "E022",
+      "E023"
+    ],
+    "alarm_calibration": {
+      "max_false_alarm_rate": 0.05,
+      "chosen": {
+        "threshold": 0.625,
+        "far": 0.045454545454545456,
+        "f1": 0.8269662921348314,
+        "recall": 0.7479674796747967
+      },
+      "n_rows": 231552,
+      "episodes": 12
+    }
+  },
+  "failure": {
+    "failure_risk": {
+      "mae": 0.006858484864617945,
+      "rmse": 0.017378691144861184,
+      "r2": 0.7579460771758464
+    },
+    "remaining_useful_life": {
+      "mae": 4.223538386067176,
+      "rmse": 6.038810293227935,
+      "r2": 0.9378630639178382
+    },
+    "n_rows": 4151,
+    "n_pipes": 201,
+    "break_auc": 0.7193350446155726,
+    "breaks_captured_top10pct": 0.3235294117647059
+  },
+  "localization": {
+    "sensitivity_baseline": {
+      "validation": {
+        "top1": 0.25502008032128515,
+        "top3": 0.4598393574297189,
+        "top5": 0.5843373493975904,
+        "mean_error_m": 582.6739454720957,
+        "median_error_m": 234.52612164860312,
+        "within_100m": 0.25301204819277107,
+        "within_250m": 0.5100401606425703,
+        "n": 498
+      },
+      "test": {
+        "top1": 0.2857142857142857,
+        "top3": 0.38095238095238093,
+        "top5": 0.42857142857142855,
+        "mean_error_m": 663.6709698815097,
+        "median_error_m": 617.3729322217257,
+        "within_100m": 0.2857142857142857,
+        "within_250m": 0.42857142857142855,
+        "n": 21
+      }
+    },
+    "gcn": {
+      "validation": {
+        "top1": 0.40963855421686746,
+        "top3": 0.6666666666666666,
+        "top5": 0.7791164658634538,
+        "mean_error_m": 336.2341467800748,
+        "median_error_m": 134.95773261203,
+        "within_100m": 0.39357429718875503,
+        "within_250m": 0.6586345381526104,
+        "n": 498
+      },
+      "train_seconds": 244.1,
+      "params": 31170,
+      "test": {
+        "top1": 0.38095238095238093,
+        "top3": 0.5238095238095238,
+        "top5": 0.5238095238095238,
+        "mean_error_m": 703.7757793387468,
+        "median_error_m": 442.7609917498445,
+        "within_100m": 0.23809523809523808,
+        "within_250m": 0.38095238095238093,
+        "n": 21
+      }
+    },
+    "sage": {
+      "validation": {
+        "top1": 0.4357429718875502,
+        "top3": 0.6746987951807228,
+        "top5": 0.7751004016064257,
+        "mean_error_m": 292.93460678637746,
+        "median_error_m": 124.67597256892176,
+        "within_100m": 0.42570281124497994,
+        "within_250m": 0.6626506024096386,
+        "n": 498
+      },
+      "train_seconds": 217.7,
+      "params": 43458,
+      "test": {
+        "top1": 0.19047619047619047,
+        "top3": 0.5238095238095238,
+        "top5": 0.6190476190476191,
+        "mean_error_m": 795.936463995174,
+        "median_error_m": 998.728607420948,
+        "within_100m": 0.19047619047619047,
+        "within_250m": 0.23809523809523808,
+        "n": 21
+      }
+    },
+    "gat": {
+      "validation": {
+        "top1": 0.43172690763052207,
+        "top3": 0.6726907630522089,
+        "top5": 0.7771084337349398,
+        "mean_error_m": 296.81368032404833,
+        "median_error_m": 122.54756289822967,
+        "within_100m": 0.4397590361445783,
+        "within_250m": 0.7028112449799196,
+        "n": 498
+      },
+      "train_seconds": 387.2,
+      "params": 56322,
+      "test": {
+        "top1": 0.23809523809523808,
+        "top3": 0.5238095238095238,
+        "top5": 0.6190476190476191,
+        "mean_error_m": 745.6963012921976,
+        "median_error_m": 342.73708162310925,
+        "within_100m": 0.23809523809523808,
+        "within_250m": 0.2857142857142857,
+        "n": 21
+      }
+    },
+    "best_architecture": "sage",
+    "n_train_snapshots": 1990,
+    "n_val_snapshots": 498,
+    "n_test_snapshots": 21
+  },
+  "water_loss": {
+    "mae_ls": 1.1036510551324588,
+    "bias_ls": 0.3736447005786897,
+    "rmse_ls": 2.6328656631981393,
+    "volume_error_pct": 31.843665409083922,
+    "corr": 0.7588328117213261
+  },
+  "explainability": {
+    "detection_global_shap": {
+      "contrast_rank": 0.6229000091552734,
+      "nbr_roll4": 0.5127999782562256,
+      "dma_ufw_roll4": 0.4350000023841858,
+      "nbr_min_rank": 0.4203000068664551,
+      "dma_ufw": 0.38499999046325684,
+      "gap_to_min": 0.33090001344680786,
+      "pipe_health": 0.32710000872612,
+      "nbr_min": 0.31299999356269836,
+      "flow_res": 0.30320000648498535,
+      "res_end": 0.27250000834465027,
+      "corrosion": 0.2547000050544739,
+      "flow_res_rank": 0.24490000307559967,
+      "nbr_res": 0.24480000138282776,
+      "pipe_age": 0.2264000028371811,
+      "sensor_health": 0.22210000455379486,
+      "res_local": 0.2071000039577484,
+      "length_m": 0.2037000060081482,
+      "nbr_contrast": 0.1891999989748001,
+      "nbr_count": 0.18400000035762787,
+      "net_min_contrast": 0.18289999663829803,
+      "demand": 0.17829999327659607,
+      "dma_ufw_rel": 0.16979999840259552,
+      "pressure": 0.16590000689029694,
+      "nbr_delta": 0.156700000166893,
+      "net_median_res": 0.13840000331401825,
+      "hour_cos": 0.13109999895095825,
+      "flow_res_rel": 0.12020000070333481,
+      "flow": 0.08579999953508377,
+      "hour_sin": 0.07890000194311142
+    },
+    "failure_global_shap": {
+      "diameter_mm": 0.2502000033855438,
+      "pipe_age": 0.24650000035762787,
+      "corrosion": 0.23510000109672546,
+      "mean_pressure": 0.20520000159740448,
+      "length_m": 0.1412000060081482,
+      "repair_count": 0.12489999830722809,
+      "material_code": 0.1137000024318695,
+      "pressure_cycles": 0.023099999874830246,
+      "historical_leaks": 0.0017999999690800905
+    }
+  },
+  "seconds": 2153.9
+}

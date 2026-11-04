@@ -47,9 +47,15 @@ sensors in production. No imputation leaks future information.
    so the model cannot memorise "which pipes leaked").
 4. **Validation:** 3-fold episode-grouped out-of-fold predictions. The F1-optimal pipe threshold and
    the network-alarm threshold are tuned on full-day episodes only.
-5. **Alarm logic:** network alarm = max pipe probability ≥ threshold for 2 consecutive steps (30 min).
+5. **Alarm calibration (commissioning):** on 12 fresh calibration episodes, never used for training
+   or evaluation, the detector learns each pipe's *normal* probability (90th percentile when no leak is
+   present). Chronically high-risk pipes have elevated priors and would otherwise alarm permanently.
+   The alarm score is the normalised excess `(p − b_pipe)/(1 − b_pipe)`. The alarm threshold is chosen to
+   maximise F1 under a **5% false-alarm budget** (Neyman-Pearson), the way utilities set SCADA
+   alarms. Re-run it at any time with `python -m aquatwin calibrate`.
+6. **Alarm logic:** network alarm = max alarm score ≥ threshold for 2 consecutive steps (30 min).
    This suppresses false alarms from single noisy readings.
-6. **Metrics:** accuracy, precision, recall, F1, ROC-AUC, and PR-AUC at two granularities: per time
+7. **Metrics:** accuracy, precision, recall, F1, ROC-AUC, and PR-AUC at two granularities: per time
    step (network alarm) and per pipe × step. Also detection delay, hit@k (true pipe in the top-k
    ranked pipes), and recall by leak size.
 

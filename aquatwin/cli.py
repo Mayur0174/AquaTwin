@@ -15,6 +15,7 @@ def main(argv: list[str] | None = None) -> None:
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("generate", help="generate the synthetic dataset")
     sub.add_parser("train", help="train detection, localisation and failure models")
+    sub.add_parser("calibrate", help="re-calibrate the leak alarm (pipe baselines + false-alarm budget)")
     ev = sub.add_parser("evaluate", help="evaluate under realism levels 0-5")
     ev.add_argument("--episodes", type=int, default=3)
     al = sub.add_parser("all", help="generate + train + evaluate")
@@ -34,6 +35,9 @@ def main(argv: list[str] | None = None) -> None:
     if args.cmd in ("train", "all"):
         from aquatwin.pipeline import train_all
         train_all(cfg)
+    if args.cmd == "calibrate":
+        from aquatwin.pipeline import calibrate_detector
+        print(calibrate_detector(cfg))
     if args.cmd in ("evaluate", "all"):
         from aquatwin.evaluation.framework import evaluate_levels
         evaluate_levels(cfg, getattr(args, "episodes", 3))

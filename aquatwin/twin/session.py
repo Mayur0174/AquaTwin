@@ -58,6 +58,7 @@ class DigitalTwinSession:
         self.node_frames: list[pd.DataFrame] = []
         self.decisions: list[Decision] = []
         self.probabilities: list[pd.Series] = []
+        self.alarm_scores: list[float] = []
         self.alarm_streak = 0
         self.alarm_active = False
         self.alarm_onset: int | None = None
@@ -174,9 +175,11 @@ class DigitalTwinSession:
         F = detection_features(P, N, self.ctx)
         cur = F[F.step == rec.cond.step].copy()
         cur["leak_probability"] = self.detector.predict_proba(cur)
+        cur["alarm_score"] = self.detector.alarm_score(cur, cur.leak_probability.to_numpy())
         self.probabilities.append(cur.set_index("pipe_id").leak_probability)
-        top = cur.sort_values("leak_probability", ascending=False).iloc[0]
-        above = top.leak_probability >= self.detector.alarm_threshold
+        self.alarm_scores.append(float(cur.alarm_score.max()))
+        top = cur.sort_values("alarm_score", ascending=False).iloc[0]
+        above = top.alarm_score >= self.detector.alarm_threshold
         self.alarm_streak = self.alarm_streak + 1 if above else 0
         ts = str(rec.cond.timestamp)
         if self.alarm_streak >= self.detector.alarm_persistence and not self.alarm_active:
@@ -189,12 +192,13 @@ class DigitalTwinSession:
                                            dict(pipe_id=top.pipe_id, probability=float(top.leak_probability),
                                                 contributions=ex["contributions"].to_dict("records"))))
             self._localize(rec, ts)
-        elif self.alarm_active and self.alarm_streak == 0 and top.leak_probability < 0.5 * self.detector.alarm_threshold:
+        elif self.alarm_active and self.alarm_streak == 0 and top.alarm_score < 0.5 * self.detector.alarm_threshold:
             self.alarm_active = False
             self.decisions.append(Decision(rec.cond.step, ts, "clear", "Alarm cleared: residuals back to normal"))
         elif self.alarm_active and (rec.cond.step - (self.alarm_onset or 0)) in (4, 12):
             self._localize(rec, ts)   # refine as evidence accumulates
-        state.update(alarm=self.alarm_active, top_pipe=str(top.pipe_id), max_probability=float(top.leak_probability))
+        state.update(alarm=self.alarm_active, top_pipe=str(top.pipe_id), max_probability=float(top.leak_probability),
+                     alarm_score=float(top.alarm_score))
         return state
 
     def _localize(self, rec: StepRecord, ts: str) -> None:
