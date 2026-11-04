@@ -85,10 +85,11 @@ def narrate(contrib: pd.DataFrame, subject: str, verdict: str, n: int = 3) -> st
     return text + "."
 
 
-def explain_detection(detector, explainer: TreeExplainer, row: pd.DataFrame) -> dict:
+def explain_detection(detector, explainer: TreeExplainer, row: pd.DataFrame, threshold: float | None = None) -> dict:
     p = float(detector.predict_proba(row)[0])
     contrib = explainer.explain_row(row)
-    verdict = f"leak probability {p:.0%} ({'ALARM' if p >= detector.threshold else 'normal'})"
+    thr = detector.threshold if threshold is None else threshold
+    verdict = f"leak probability {p:.0%} ({'above' if p >= thr else 'below'} alarm threshold {thr:.0%})"
     return dict(probability=p, contributions=contrib, text=narrate(contrib, f"Pipe {row.pipe_id.iloc[0]}", verdict))
 
 

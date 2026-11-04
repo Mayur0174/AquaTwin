@@ -184,7 +184,7 @@ class DigitalTwinSession:
             self.alarm_onset = rec.cond.step - self.detector.alarm_persistence + 1
             row = cur[cur.pipe_id == top.pipe_id]
             from aquatwin.xai.explain import explain_detection
-            ex = explain_detection(self.detector, self.explainer, row)
+            ex = explain_detection(self.detector, self.explainer, row, self.detector.alarm_threshold)
             self.decisions.append(Decision(rec.cond.step, ts, "alarm", "LEAK ALARM - " + ex["text"],
                                            dict(pipe_id=top.pipe_id, probability=float(top.leak_probability),
                                                 contributions=ex["contributions"].to_dict("records"))))
@@ -242,8 +242,10 @@ class DigitalTwinSession:
     def asset_risk(self) -> pd.DataFrame:
         cur = current_asset_frame(self.net)
         if self.failure is None:
-            return cur.assign(pred_failure_risk=self.net.pipes.failure_risk, pred_remaining_useful_life=self.net.pipes.rul_years)
-        return pd.concat([cur, self.failure.predict(cur).add_prefix("pred_")], axis=1)
+            out = cur.assign(pred_failure_risk=self.net.pipes.failure_risk, pred_remaining_useful_life=self.net.pipes.rul_years)
+        else:
+            out = pd.concat([cur, self.failure.predict(cur).add_prefix("pred_")], axis=1)
+        return out.reset_index(drop=True)
 
     def truth_leaks(self) -> list[dict]:
         return self.records[-1].truth.leaks if self.records else []

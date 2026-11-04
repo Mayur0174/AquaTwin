@@ -44,7 +44,7 @@ different sensor random streams and checks that the truth is bit-identical.
 flowchart TB
     subgraph Sim["Simulation layer (replaceable by real sensors)"]
         NG[1 Water Network Generator<br/>NetworkX]
-        SE[2 Scenario Engine<br/>34 scenarios, 6 realism levels]
+        SE[2 Scenario Engine<br/>33 scenarios, 6 realism levels]
         TE[3 Hydraulic Truth Engine]
         RE[4 Sensor Reality Engine]
         DG[5 Dataset Generator<br/>Parquet / CSV]
@@ -111,7 +111,7 @@ sequenceDiagram
 | # | Module | Package | Responsibility | Key technical decision |
 |---|---|---|---|---|
 | 1 | Water Network Generator | `aquatwin/network/` | City street grid → engineered pipe network with DMAs, reservoir → pumping station → elevated tanks | Pipes are **sized hydraulically** (supply tree + v ≤ 1 m/s), materials follow installation era, and the repair history is *simulated* from the hazard model |
-| 2 | Scenario Engine | `aquatwin/scenarios/` | Event timeline → per-step physical `Conditions`; catalogue of 34 scenarios; realism levels 0-5 | Scenarios specify causes only. Unspecified leak locations are sampled from the physics hazard field, never uniformly |
+| 2 | Scenario Engine | `aquatwin/scenarios/` | Event timeline → per-step physical `Conditions`; catalogue of 33 scenarios; realism levels 0-5 | Scenarios specify causes only. Unspecified leak locations are sampled from the physics hazard field, never uniformly |
 | 3 | Hydraulic Truth Engine | `aquatwin/physics/`, `aquatwin/truth/` | Extended-period simulation: GGA solver, PDD, FAVAD leaks, pumps and tank controls, Joukowsky surge, deterioration, stress-strength failures | Same algorithm as EPANET 2 (Todini-Pilati). Leaks split the pipe, so the true location is physical. Mass-balance audit runs every step |
 | 4 | Sensor Reality Engine | `aquatwin/sensors/` | Placement (k-center), noise, faults, Gilbert-Elliott comms, raw packets | Sensor health is partially observable (bias is undetectable, as in reality) |
 | 5 | Dataset Generator | `aquatwin/data/` | Episodes → `pipes_timeseries` (spec schema), node/system/events/telemetry tables, localisation sweep, asset-history panel | Truth and observation are stored side by side with provenance tags (`schema.json`) |
@@ -144,7 +144,7 @@ AquaTwin/
 │   │   └── degradation.py         # corrosion, roughness, hazard, health, RUL, Barlow strength
 │   ├── scenarios/
 │   │   ├── events.py              # Event, LeakSpec, Conditions
-│   │   ├── catalog.py             # 34 scenarios with rules
+│   │   ├── catalog.py             # 33 scenarios with rules
 │   │   └── engine.py              # ScenarioEngine, realism levels, episode composer
 │   ├── truth/
 │   │   ├── builder.py             # per-step hydraulic model (leak pipe splitting, tank rule)

@@ -38,8 +38,8 @@ def style(fig: go.Figure, title: str = "", height: int = 320, y_title: str = "")
                       paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                       font=dict(family="system-ui, -apple-system, Segoe UI, sans-serif", color=MUTED),
                       legend=dict(orientation="h", y=-0.18), hovermode="x unified")
-    fig.update_xaxes(showgrid=False, linecolor=AXIS)
-    fig.update_yaxes(gridcolor=GRID, zeroline=False, title=y_title)
+    fig.update_xaxes(showgrid=False, linecolor=AXIS, automargin=True)
+    fig.update_yaxes(gridcolor=GRID, zeroline=False, title=y_title, automargin=True)
     return fig
 
 
@@ -61,7 +61,7 @@ def risk_status(r: float) -> str:
 
 
 # ---------------------------------------------------------------- session bootstrap
-cfg = AquaTwinConfig.load(st.session_state.get("config_path"))
+cfg = AquaTwinConfig.load()  # honours $AQUATWIN_CONFIG
 data_dir, model_dir, report_dir = Path(cfg.dataset.output_dir), Path(cfg.training.model_dir), Path(cfg.training.report_dir)
 if not (data_dir / "network" / "network.json").exists():
     st.title("💧 AquaTwin AI")
@@ -97,7 +97,7 @@ with st.sidebar:
             st.session_state.twin.step(4)
             st.rerun()
         c1, c2, c3 = st.columns(3)
-        for col, n, lbl in ((c1, 1, "+15 min"), (c2, 4, "+1 h"), (c3, 24, "+6 h")):
+        for col, n, lbl in ((c1, 1, "+15m"), (c2, 4, "+1 h"), (c3, 24, "+6 h")):
             if col.button(lbl, use_container_width=True):
                 with st.spinner("Simulating physics + AI..."):
                     twin.step(n)
@@ -144,15 +144,18 @@ with st.sidebar:
 s = twin.state()
 st.title("💧 AquaTwin AI — Water Network Digital Twin")
 k = st.columns(6)
-k[0].metric("Simulated time", s.get("timestamp", "-")[5:16])
+ts = s.get("timestamp", "")
+k[0].metric(f"Time ({ts[5:10]})", ts[11:16] or "-")
 k[1].metric("Demand", f"{s.get('total_demand_ls', 0):.0f} L/s")
-k[2].metric("AI status", "🚨 LEAK ALARM" if s.get("alarm") else "✅ Normal")
+k[2].metric("AI status", "🚨 ALARM" if s.get("alarm") else "Normal")
 bal = twin.water_balance()
 est_loss = float(bal[bal.step == bal.step.max()].estimated_loss_ls.sum()) if not bal.empty else 0.0
-k[3].metric("Estimated loss (DMA balance)", f"{est_loss:.1f} L/s")
+k[3].metric("Est. loss", f"{est_loss:.1f} L/s", help="DMA water balance (observations only)")
 k[4].metric("True loss", f"{s.get('true_loss_ls', 0):.1f} L/s" if show_truth else "hidden")
-k[5].metric("Pump / Tanks", ("ON" if s.get("pump_on") else "OFF") + " / " +
-            ", ".join(f"{v:.1f} m" for v in s.get("tank_levels", {}).values()))
+k[5].metric("Pump", "ON" if s.get("pump_on") else "OFF",
+            help="Tank levels: " + ", ".join(f"{t} {v:.1f} m" for t, v in s.get("tank_levels", {}).items()))
+st.caption("Tank levels: " + " · ".join(f"{t} {v:.2f} m" for t, v in s.get("tank_levels", {}).items())
+           + f" · Realism L{twin.level} ({REALISM_LEVELS[twin.level].name}) · step {s.get('step', 0)}/{twin.n_steps}")
 
 tabs = st.tabs(["🗺️ Network Map", "⏯️ Timeline Playback", "🧠 AI Decisions & XAI", "🏗️ Asset Risk",
                 "🚰 Water Loss", "🧪 Evaluation", "📚 Scenarios"])
@@ -235,7 +238,8 @@ with tabs[0]:
     min_risk = c[3].slider("Min AI risk", 0.0, 0.3, 0.0, 0.01)
     age = c[4].slider("Age (y)", 0, int(pipes.age_years.max()) + 1, (0, int(pipes.age_years.max()) + 1))
     pos = len(twin.records) - 1
-    st_folium(build_map(pos, layer, mats, dmas, min_risk, age), height=560, use_container_width=True, returned_objects=[])
+    st_folium(build_map(pos, layer, mats, dmas, min_risk, age), height=560, use_container_width=True, returned_objects=[],
+              key="main_map")
     if layer in ("Pipe health", "Failure risk (AI)"):
         lab = {"Pipe health": ("≥70", "50–70", "35–50", "<35"), "Failure risk (AI)": ("<2%/y", "2–5%", "5–15%", ">15%")}[layer]
         st.markdown(" ".join(f"<span style='color:{STATUS[s_]}'>━━</span> {s_} {l}" for s_, l in zip(STATUS, lab)),
@@ -316,7 +320,7 @@ with tabs[2]:
 
 # ---------------------------------------------------------------- asset risk
 with tabs[3]:
-    ar = twin.asset_risk().merge(pipes[["pipe_id", "health_score", "dma", "installation_year"]], on="pipe_id")
+    ar = twin.asset_risk().merge(pipes[["pipe_id", "health_score", "dma", "installation_year"]].reset_index(drop=True), on="pipe_id")
     ar = ar.sort_values("pred_failure_risk", ascending=False)
     cA, cB = st.columns([3, 2])
     with cA:

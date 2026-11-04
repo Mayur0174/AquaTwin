@@ -9,7 +9,7 @@ audited where the answer is known, then runs on observations only. A utility can
 real SCADA/AMI feeds later without changing the architecture.
 
 ```
-CAUSE (34 scenarios) ──▶ PHYSICS (EPANET-grade GGA solver) ──▶ OBSERVATION (sensor + comms reality)
+CAUSE (33 scenarios) ──▶ PHYSICS (EPANET-grade GGA solver) ──▶ OBSERVATION (sensor + comms reality)
                                          │                                  │
                                  Ground-Truth World                  Telemetry contract
                                          │                                  ▼
@@ -30,7 +30,7 @@ is never sampled, and an automated test proves it.
   causality test and a perfect-twin test (at L0, observed − expected = 0 exactly).
 * **Engineered city:** DMAs, a WTP reservoir → pumping station → elevated tanks, hydraulically sized
   pipes, era-dependent materials, and a *simulated* break/repair history with a renewal policy.
-* **34 scenarios × 6 realism levels**: normal ops, leaks, sensor faults, comms faults,
+* **33 scenarios × 6 realism levels**: normal ops, leaks, sensor faults, comms faults,
   infrastructure, environment, and compound events. Every event carries a causal explanation.
 * **Dataset:** 463k pipe records (Parquet + CSV), node/system tables, 546k raw telemetry packets
   with latency and duplicates, a 900-sample GNN leak sweep, and an asset-history panel. Truth and

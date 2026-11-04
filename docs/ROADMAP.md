@@ -6,7 +6,7 @@
 |---|---|---|---|
 | 0 | 0-4 | Architecture, data contracts, physical-truth rules as tests | Water Resources Eng. + Smart City Consultant |
 | 1 | 4-14 | Network generator, GGA solver (PDD, FAVAD, pumps, tanks), truth engine | Hydraulic Modelling Expert |
-| 2 | 14-22 | Scenario engine (34 scenarios, 6 levels), reality engine, ingestion | Hydraulic Expert + MLOps |
+| 2 | 14-22 | Scenario engine (33 scenarios, 6 levels), reality engine, ingestion | Hydraulic Expert + MLOps |
 | 3 | 22-30 | Dataset generator, schema, sweep, asset panel | AI Research Scientist |
 | 4 | 30-42 | Feature engineering, XGBoost detector, failure model, SHAP | AI Research Scientist |
 | 5 | 34-46 | GNN localisation (GCN/SAGE/GAT) + sensitivity baseline | GNN Specialist |

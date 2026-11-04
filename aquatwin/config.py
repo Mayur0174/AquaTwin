@@ -7,6 +7,7 @@ documented where they are defined.
 """
 from __future__ import annotations
 
+import os
 from dataclasses import asdict, dataclass, field, fields, is_dataclass
 from pathlib import Path
 from typing import Any
@@ -115,7 +116,8 @@ class AquaTwinConfig:
     @classmethod
     def load(cls, path: str | Path | None = None) -> "AquaTwinConfig":
         cfg = cls()
-        if path is None:
+        path = path or os.environ.get("AQUATWIN_CONFIG")
+        if not path:
             return cfg
         with open(path, "r", encoding="utf-8") as fh:
             raw = yaml.safe_load(fh) or {}

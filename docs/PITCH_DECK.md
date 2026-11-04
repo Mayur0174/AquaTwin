@@ -7,7 +7,7 @@
 | 3 | **Why current tools fail** | Utilities have sparse, noisy, lossy sensors and no labelled leak data, so ML cannot be trained or trusted. | Three-icon slide: no labels · noisy data · no explanations | 0:30 |
 | 4 | **Our idea** | Build the city's water network twice: a physics *truth* and an *observed* world. Train AI where the answer is known, then deploy it where it is not. | CAUSE → PHYSICS → OBSERVATION diagram | 0:40 |
 | 5 | **Physics you can audit** | EPANET-grade GGA solver, pressure-driven demand, FAVAD leaks, Joukowsky surges, stress-strength failures, and 10 immutable physical truths enforced as automated tests. | Equations strip + green test badge "50 passed" | 0:45 |
-| 6 | **Reality, not a toy** | 34 scenarios, 6 realism levels: drift, bias, frozen sensors, bursty packet loss, rain, settlement, construction, compound failures. | Scenario wheel + level ladder L0→L5 | 0:40 |
+| 6 | **Reality, not a toy** | 33 scenarios, 6 realism levels: drift, bias, frozen sensors, bursty packet loss, rain, settlement, construction, compound failures. | Scenario wheel + level ladder L0→L5 | 0:40 |
 | 7 | **The AI stack** | XGBoost detects, a physics-informed GNN localises to pipe and metre, XGBoost predicts failure and remaining life, SHAP explains every decision. | Architecture diagram; GNN schematic | 0:45 |
 | 8 | **Results** | Report each headline number with its realism level: detection F1 and ROC-AUC, median localisation error vs the classical method, failure-risk R². | `reports/evaluation_levels.md` charts: F1 vs level, error GNN vs classical | 0:50 |
 | 9 | **Live demo** | Inject a burst during the evening peak, watch the alarm, SHAP reasons, GNN pin on the map, DMA loss estimate, then isolate the pipe. | Dashboard, live | 3:00 |
