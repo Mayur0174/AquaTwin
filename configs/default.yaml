@@ -1,0 +1,81 @@
+network:
+  seed: 42
+  grid_x: 12
+  grid_y: 10
+  spacing_m: 220.0
+  jitter: 0.18
+  edge_drop_frac: 0.1
+  diagonal_frac: 0.04
+  center_lat: 18.5204
+  center_lon: 73.8567
+  base_elevation_m: 552.0
+  hill_height_m: 22.0
+  dma_split:
+  - 2
+  - 2
+  population_density_km2: 16000.0
+  lpcd: 135.0
+  current_year: 2026
+  n_tanks: 2
+  tank_staging_m: 18.0
+  valve_fraction: 0.35
+  peak_factor: 2.5
+  design_velocity_ms: 1.0
+simulation:
+  timestep_minutes: 15
+  episode_hours: 24
+  start: 2026-06-01 00:00
+  pdd_pmin_m: 0.5
+  pdd_preq_m: 12.0
+  solver_tol: 1.0e-06
+  solver_max_iter: 60
+  demand_noise_sigma: 0.05
+  demand_noise_rho: 0.85
+sensors:
+  pressure_coverage: 0.5
+  flow_coverage: 0.2
+  pressure_noise_m: 0.06
+  pressure_resolution_m: 0.05
+  flow_noise_frac: 0.015
+  flow_noise_floor_ls: 0.05
+  flow_resolution_ls: 0.01
+  ami_noise_frac: 0.03
+  drift_rate_m_per_day: 0.6
+  background_fault_rate: 0.03
+  p_good_to_bad: 0.02
+  p_bad_to_good: 0.25
+  loss_in_bad: 0.6
+  loss_in_good: 0.005
+  delay_median_s: 3.0
+  delay_sigma: 1.2
+  duplicate_prob: 0.01
+  late_cutoff_s: 600.0
+dataset:
+  output_dir: data/generated
+  n_episodes: 24
+  levels:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  localization_samples: 900
+  localization_steps_per_sample: 3
+  history_years: 25
+  write_csv: true
+  seed: 7
+training:
+  model_dir: artifacts/models
+  report_dir: reports
+  test_fraction: 0.25
+  detection_max_neg_ratio: 25.0
+  gnn_epochs: 60
+  gnn_hidden: 64
+  gnn_layers: 3
+  gnn_lr: 0.003
+  gnn_architectures:
+  - gcn
+  - sage
+  - gat
+  seed: 1

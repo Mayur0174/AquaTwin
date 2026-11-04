@@ -1,0 +1,30 @@
+# docker compose run --rm pipeline   # 1) simulate data + train + evaluate (once, ~15 min CPU)
+# docker compose up api dashboard    # 2) serve
+x-app: &app
+  build: .
+  image: aquatwin-ai:1.0
+  volumes:
+    - ./data:/app/data
+    - ./artifacts:/app/artifacts
+    - ./reports:/app/reports
+  environment:
+    - MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI:-}
+
+services:
+  pipeline:
+    <<: *app
+    command: ["python", "-m", "aquatwin", "all", "--episodes", "3"]
+    profiles: ["batch"]
+
+  api:
+    <<: *app
+    command: ["uvicorn", "aquatwin.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports: ["8000:8000"]
+    restart: unless-stopped
+
+  dashboard:
+    <<: *app
+    command: ["streamlit", "run", "dashboard/app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
+    ports: ["8501:8501"]
+    depends_on: [api]
+    restart: unless-stopped

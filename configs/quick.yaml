@@ -1,0 +1,7 @@
+# Fast smoke configuration (~3 minutes end-to-end) for laptops / CI
+dataset:
+  n_episodes: 6
+  localization_samples: 150
+  write_csv: false
+training:
+  gnn_epochs: 15

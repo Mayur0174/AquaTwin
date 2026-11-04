@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+data/generated/
+artifacts/
+*.egg-info/
+.venv/
+.streamlit/secrets.toml
