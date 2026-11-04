@@ -18,6 +18,7 @@ Design principles
 """
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 
 import numpy as np
@@ -221,7 +222,9 @@ def snapshot_features(m: dict[str, np.ndarray], t: int, flow_row: np.ndarray, ex
     med = np.nanmedian(res[valid]) if valid.any() else 0.0
     r_end = t if ref_step is None else ref_step          # frozen pre-alarm reference window
     past = m["res"][max(0, r_end - 5):max(0, r_end - 1)]
-    base = np.nanmean(past, axis=0) if len(past) else np.full_like(res, np.nan)
+    with np.errstate(all="ignore"), warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)    # all-NaN columns = sensor silent before onset
+        base = np.nanmean(past, axis=0) if len(past) else np.full_like(res, np.nan)
     delta = np.where(valid & ~np.isnan(base), res - base, 0.0)
     obs = np.nan_to_num(m["obs"][t])
     elev = nodes.elevation.to_numpy(float)

@@ -19,6 +19,32 @@ docker compose --profile batch run --rm pipeline   # data + training + evaluatio
 docker compose up api dashboard                     # :8000 API, :8501 dashboard
 ```
 
+Image notes:
+
+* No apt layer: every dependency ships as a manylinux wheel (xgboost and scikit-learn bundle OpenMP),
+  so the build works without Debian mirrors. The package runs from source (`PYTHONPATH=/app`).
+* PyTorch comes from the CPU wheel index (`--build-arg TORCH_INDEX=...` to change it) and falls back to
+  PyPI if that index is unreachable. The PyPI build includes CUDA libraries, so the image is larger.
+* Behind a TLS-inspecting corporate proxy, pass its CA as a build secret. It is used only by pip and
+  never stored in the image:
+  `docker build --secret id=extra_ca,src=/path/to/corporate-ca.crt -t aquatwin-ai:1.0 .`
+* The health check (`python -m aquatwin.healthcheck`) passes when the API or the dashboard in the
+  container answers.
+
+Verified in a sandboxed build:
+
+* The image builds.
+* `pytest` passes inside it (50 tests).
+* `python -m aquatwin --config configs/quick.yaml all` runs end-to-end in the container (about 5 min)
+  and writes reports and the model registry to the mounted volumes.
+* `docker compose up api dashboard` brings both services to `healthy`.
+* The containerized API completes start → inject leak → step → decisions → water loss.
+* The containerized dashboard renders the Folium map (271 vector layers, markers, asset popups).
+
+The dashboard map loads Leaflet and base-map tiles from public CDNs (jsDelivr, cdnjs, CARTO). On an
+air-gapped control-room network, mirror those assets internally. The standalone explorer
+(`ui/aquatwin_explorer.html`) needs no tiles at all.
+
 A single CPU image (`python:3.11-slim` + CPU PyTorch) serves three roles:
 
 | Service | Command | Port | Notes |

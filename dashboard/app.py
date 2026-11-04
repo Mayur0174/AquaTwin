@@ -96,8 +96,9 @@ with st.sidebar:
             st.session_state.twin = new_session(level, int(seed), start, int(hours))
             st.session_state.twin.step(4)
             st.rerun()
+        st.caption("Advance the simulation by")
         c1, c2, c3 = st.columns(3)
-        for col, n, lbl in ((c1, 1, "+15m"), (c2, 4, "+1 h"), (c3, 24, "+6 h")):
+        for col, n, lbl in ((c1, 1, "15m"), (c2, 4, "1h"), (c3, 24, "6h")):
             if col.button(lbl, use_container_width=True):
                 with st.spinner("Simulating physics + AI..."):
                     twin.step(n)
@@ -107,11 +108,10 @@ with st.sidebar:
         pid = None if pipe_choice.startswith("(") else pipe_choice
         cat = st.select_slider("Leak size", ["small", "medium", "large", "burst"], "large")
         pos = st.slider("Position along pipe", 0.0, 1.0, 0.5)
-        c1, c2 = st.columns(2)
-        if c1.button("💧 Inject leak", use_container_width=True):
+        if st.button("💧 Inject leak", use_container_width=True):
             ev = twin.inject_leak(pid, cat, pos)
             st.toast(f"Leak injected on {ev['target']}")
-        if c2.button("💥 Inject burst", use_container_width=True):
+        if st.button("💥 Inject burst", use_container_width=True):
             ev = twin.inject_burst(pid)
             st.toast(f"Burst injected on {ev['target']}")
         sensor = st.selectbox("Sensor", twin.sensors.pressure.sensor_id.tolist())

@@ -1,5 +1,11 @@
 # GIS Dashboard and Digital Twin Control Panel: Wireframes
 
+Two front ends share the same twin and models:
+
+* `dashboard/app.py`: the interactive Streamlit control room (inject events, run the twin live).
+* `ui/aquatwin_explorer.html`: a standalone, offline visual explorer of recorded twin runs, built by
+  `python -m aquatwin ui` (`aquatwin/viz/`).
+
 Implemented in `dashboard/app.py` (Streamlit + Folium + Plotly). The colour system follows a
 validated, colour-blind-safe palette. Health and risk tiers use labelled status colours (good /
 warning / serious / critical). Magnitudes (pressure, flow) use a single-hue blue ramp. Leak

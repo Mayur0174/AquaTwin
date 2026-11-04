@@ -82,6 +82,20 @@ Reading the numbers honestly:
 * Failure-model scores come from an **unseen city** with degraded inspection data, so there is no
   pipe overlap with training.
 
+## Visual explorer
+
+`ui/aquatwin_explorer.html` is a self-contained page: open it in any browser, with no server and no
+map tiles. It replays four real twin runs on the network drawn from the model's own coordinates:
+* Large leak at the evening peak
+* Burst followed by valve isolation
+* Leak with the nearest logger dead
+* Leak hidden by a heatwave demand surge
+
+For each run you can step through time and watch the leak-probability, pressure-residual, pressure,
+health, risk and material layers. The page also shows the alarm-score and water-loss timelines, the
+decision log with SHAP reasons, GNN candidates with their distance to the true leak, the asset risk
+ranking, and the realism-level evaluation. Rebuild it after retraining with `python -m aquatwin ui`.
+
 ## Quick start
 
 ```bash

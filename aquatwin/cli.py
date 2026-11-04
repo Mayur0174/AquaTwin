@@ -25,6 +25,8 @@ def main(argv: list[str] | None = None) -> None:
     dash = sub.add_parser("dashboard", help="run the Streamlit dashboard")
     dash.add_argument("--port", type=int, default=8501)
     sub.add_parser("scenarios", help="list the scenario catalogue")
+    ui = sub.add_parser("ui", help="build the self-contained HTML explorer (ui/aquatwin_explorer.html)")
+    ui.add_argument("--out", default="ui/aquatwin_explorer.html")
     args = ap.parse_args(argv)
     cfg = AquaTwinConfig.load(args.config)
 
@@ -46,6 +48,9 @@ def main(argv: list[str] | None = None) -> None:
         uvicorn.run("aquatwin.api.main:app", host="0.0.0.0", port=args.port)
     if args.cmd == "dashboard":
         subprocess.run([sys.executable, "-m", "streamlit", "run", "dashboard/app.py", "--server.port", str(args.port)])
+    if args.cmd == "ui":
+        from aquatwin.viz.export import build_ui
+        build_ui(cfg, args.out)
     if args.cmd == "scenarios":
         from aquatwin.scenarios.catalog import SCENARIOS
         for s in SCENARIOS.values():
